@@ -1,0 +1,53 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!-- Copyright (c) 2010 Rally Software Development Corp. All rights reserved -->
+<html>
+<head>
+   <title>Table Component Example</title>
+   <meta name="Name" content="App Example: Table of user stories in project" />
+   <meta name="Version" content="2010.4" />
+   <meta name="Vendor" content="Rally Lab" />
+   <script type="text/javascript" src="https://rally1.rallydev.com/apps/1.29/sdk.js"></script>
+   <script type="text/javascript">
+
+     function tableExample() {
+       var rallyDataSource = new rally.sdk.data.RallyDataSource('12352608129', '12352608219',true,true);
+       var howFarBack = rally.sdk.util.DateTime.add(new Date(), "week", -4);  //4 weeks back. Make sure to limit the query. RevisionHistory is expensive!
+	var howFarBackISO = rally.sdk.util.DateTime.toIsoString(howFarBack);
+      
+      function itemQuery() {
+         var queryObject = {
+           key: 'stories',
+           type: 'HierarchicalRequirement',
+           fetch: 'FormattedID,Name,ScheduleState,LastUpdateDate,Owner',
+	   query: '(LastUpdateDate > "' + howFarBackISO + '")'
+         };
+         rallyDataSource.findAll(queryObject, populateTable);
+      }
+
+      function populateTable(results) {
+       var index = 1;
+	 for (var i=0; i < results.stories.length; i++,index++) {
+		results.stories[i].Index = index;   // to get 1 through N rankings...
+		results.stories[i].Owner = (results.stories[i].Owner!=null) ? results.stories[i].Owner._refObjectName : 'None';
+        }
+         var tableDiv = document.getElementById('aDiv');
+         var config = { columns:
+             [{key:'Index', header: '#'},
+	     {key: 'FormattedID', header: 'Formatted ID', width: 100},
+             {key: 'Name'},
+             {key: 'ScheduleState', header: 'Schedule State'},
+	     {key:'Owner'}] };
+        var table = new rally.sdk.ui.Table(config);
+         table.addRows(results.stories);
+         table.display(tableDiv);
+      };
+     itemQuery();
+     }
+
+     rally.addOnLoad(tableExample);
+   </script>
+</head>
+<body>
+   <div id="aDiv"></div>
+</body>
+</html> 
